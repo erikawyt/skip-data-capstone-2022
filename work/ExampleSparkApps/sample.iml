@@ -7,12 +7,10 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/scala" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/src/main/java" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="scala-sdk-2.12.12" level="application" />
     <orderEntry type="library" name="Maven: org.apache.spark:spark-core_2.12:3.0.1" level="project" />
     <orderEntry type="library" name="Maven: com.thoughtworks.paranamer:paranamer:2.8" level="project" />
     <orderEntry type="library" name="Maven: org.apache.avro:avro:1.8.2" level="project" />
@@ -532,5 +530,6 @@
     <orderEntry type="library" name="Maven: org.apache.hadoop:hadoop-mapreduce-client-common:3.0.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.hadoop:hadoop-aws:3.0.0" level="project" />
     <orderEntry type="library" name="Maven: com.amazonaws:aws-java-sdk-bundle:1.11.199" level="project" />
+    <orderEntry type="library" name="scala-sdk-2.12.12" level="application" />
   </component>
 </module>
