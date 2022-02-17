@@ -36,27 +36,31 @@ object s3Executor {
       .filter(f => !f.equals("{") && !f.equals("}")).map(x => x.split(":"))
       .map(x => Test(x(0).strip(),x(1).replace(",","")))
 
-    val order_id = rdd_new.filter(x => x.key.equals("\"order_id\"")).map(x => x.value).toDF()
-      .withColumnRenamed("value", "OrderID")
-      .withColumn("row_id", monotonically_increasing_id())
-    val custom_id = rdd_new.filter(x => x.key.equals("\"custo_id\"")).map(x => x.value).toDF()
-      .withColumnRenamed("value", "CustomerID")
-      .withColumn("row_id", monotonically_increasing_id())
-    val item_id = rdd_new.filter(x => x.key.equals("\"order.item_grp_id\"")).map(x => x.value).toDF()
-      .withColumnRenamed("value", "ItemGrpID")
-      .withColumn("row_id", monotonically_increasing_id())
-    val quantity = rdd_new.filter(x => x.key.equals("\"order.qty\"")).map(x => x.value).toDF()
-      .withColumnRenamed("value", "Qty")
-      .withColumn("row_id", monotonically_increasing_id())
+    val rdd1 = rdd_new.filter(x => x.key.equals("\"order_id\"")).map(x => x.value)
+    val rdd2 = rdd_new.filter(x => x.key.equals("\"custo_id\"")).map(x => x.value)
+    val rdd3 = rdd_new.filter(x => x.key.equals("\"order.item_grp_id\"")).map(x => x.value)
+    val rdd4 = rdd_new.filter(x => x.key.equals("\"order.qty\"")).map(x => x.value)
+    val allRDDs = Seq(rdd1, rdd2, rdd3, rdd4)
+    val res = applyFuncToZip(allRDDs, (s: Seq[String]) => s.toString())
 
-    val finalDF = order_id.join(
-      custom_id.join(
-        item_id.join(
-          quantity, "row_id"),
-        "row_id"),
-      ("row_id"))
-      .drop("row_id")
-    finalDF.write.option("path", "gs://{bucketname}//first_table_test").save()
+    res.foreach(s => println(s)) // TODO: construct an object with right format and save to gcs instead of println
+  }
+
+  // zip the RDDs into an RDD of Seq[Int]
+  def makeZip(s: Seq[RDD[String]]): RDD[Seq[String]] = {
+    if (s.length == 1)
+      s.head.map(e => Seq(e))
+    else {
+      val others = makeZip(s.tail)
+      val all = s.head.zip(others)
+      all.map(elem => Seq(elem._1) ++ elem._2)
+    }
+  }
+
+  // zip and apply arbitrary function from Seq[Int] to Int
+  def applyFuncToZip(s: Seq[RDD[String]], f:Seq[String] => String): RDD[String] = {
+    val z = makeZip(s)
+    z.map(f)
   }
 
   def main(args: Array[String]): Unit = {
