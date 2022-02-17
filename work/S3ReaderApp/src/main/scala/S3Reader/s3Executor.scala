@@ -43,10 +43,19 @@ object s3Executor {
     val allRDDs = Seq(rdd1, rdd2, rdd3, rdd4)
     val res = applyFuncToZip(allRDDs, (s: Seq[String]) => s.toString())
 
-    res.foreach(s => println(s)) // TODO: construct an object with right format and save to gcs instead of println
+//    res.foreach(s => println(s)) // TODO: construct an object with right format and save to gcs instead of println
+
+//    //convert rdd to json and write to gcs
+//    res.toDF("order_id", "custo_id", "order.item_grp_id", "order.qty").write.format("parquet").save(System.getenv("GCS_BUCKET"))
+
+
+//    //read multiline json files as a df and write to gcs
+//    val s3DF = spark.read.option("multiline", "true").json(s3Path)
+//    //write to gcs
+//    s3DF.write.format("parquet").save(System.getenv("GCS_BUCKET"))
   }
 
-  // zip the RDDs into an RDD of Seq[Int]
+  // zip the RDDs into an RDD of Seq[String]
   def makeZip(s: Seq[RDD[String]]): RDD[Seq[String]] = {
     if (s.length == 1)
       s.head.map(e => Seq(e))
@@ -57,7 +66,7 @@ object s3Executor {
     }
   }
 
-  // zip and apply arbitrary function from Seq[Int] to Int
+  // zip and apply arbitrary function from Seq[String] to String
   def applyFuncToZip(s: Seq[RDD[String]], f:Seq[String] => String): RDD[String] = {
     val z = makeZip(s)
     z.map(f)
