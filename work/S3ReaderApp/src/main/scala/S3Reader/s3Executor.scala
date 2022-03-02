@@ -11,7 +11,7 @@ import org.apache.spark.sql.functions.monotonically_increasing_id
 //  ref https://sparkbyexamples.com/spark/spark-read-text-file-from-s3/
 case class Test(key:String, value:String)
 object s3Executor {
-  def execute(args: Array[String]): Unit = {
+  def execute(args: Array[String]): DataFrame = {
     import org.apache.spark.sql.SparkSession
     val accessKeyID = args(0) //  accessKeyID
     val secretAccessKey = args(1) //  secretAccessKey
@@ -26,9 +26,11 @@ object s3Executor {
       .hadoopConfiguration.set("fs.s3a.secret.key", secretAccessKey)
     spark.sparkContext
       .hadoopConfiguration.set("fs.s3a.endpoint", "s3.amazonaws.com")
-    spark.conf.set("google.cloud.auth.service.account.enable", "true")
-    spark.conf.set("google.cloud.auth.service.account.email", System.getenv("ACCOUNT_EMAIL"))
-    spark.conf.set("google.cloud.auth.service.account.keyfile", System.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+
+
+//    spark.conf.set("google.cloud.auth.service.account.enable", "true")
+//    spark.conf.set("google.cloud.auth.service.account.email", System.getenv("ACCOUNT_EMAIL"))
+//    spark.conf.set("google.cloud.auth.service.account.keyfile", System.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
     import spark.implicits._
     val s3RDD = spark.sparkContext.textFile(s3Path)
 
@@ -50,9 +52,28 @@ object s3Executor {
 
 
 //    //read multiline json files as a df and write to gcs
-//    val s3DF = spark.read.option("multiline", "true").json(s3Path)
+    val s3DF = spark.read.option("multiline", "true").json(s3Path)
+
+    saveToGCS(s3DF)
+
+    s3DF
 //    //write to gcs
 //    s3DF.write.format("parquet").save(System.getenv("GCS_BUCKET"))
+  }
+
+  def saveToGCS(s3DF: DataFrame): Unit = {
+    val spark2: SparkSession = SparkSession.builder()
+      .master("local")
+      .appName("SaveToGCS")
+      .getOrCreate()
+    spark2.conf.set("google.cloud.auth.service.account.enable", "true")
+    spark2.conf.set("google.cloud.auth.service.account.email", System.getenv("ACCOUNT_EMAIL"))
+    spark2.conf.set("google.cloud.auth.service.account.keyfile", System.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+
+//    spark2.conf.set("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
+//    spark2.conf.set("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
+    //write to gcs
+    s3DF.write.format("parquet").save(System.getenv("GCS_BUCKET"))
   }
 
   // zip the RDDs into an RDD of Seq[String]
@@ -76,7 +97,7 @@ object s3Executor {
     // define commons, best to get credentials from environment variables
     val accessKeyID = System.getenv("ACCESS_KEY_ID")
     val secretAccessKey = System.getenv("SECRET_ACCESS_KEY")
-    val s3Path = "s3a://skip-capstone-2022/grocery_order_transaction_data/*.json"
+    val s3Path = "s3a://skip-capstone-2022/grocery_order_transaction_data/24296*.json"
     execute(Array(accessKeyID,
       secretAccessKey,
       s3Path
