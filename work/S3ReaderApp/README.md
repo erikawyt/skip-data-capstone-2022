@@ -56,3 +56,7 @@ visit http://localhost:8082/ for the logs
 ![img.png](img.png)
 
 
+# GCS 
+path: https://console.cloud.google.com/storage/browser/skip-capstone-2022
+
+![img_2.png](img_2.png)

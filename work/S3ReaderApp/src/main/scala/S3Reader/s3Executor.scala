@@ -70,7 +70,7 @@ object s3Executor {
 
 //    https://stackoverflow.com/questions/32591745/save-spark-dataframe-as-parquet-file-in-google-cloud-storage
     spark2.conf.set("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
-//    spark2.conf.set("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
+    spark2.conf.set("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
     spark2.conf.set("google.cloud.auth.service.account.enable", "true")
     spark2.conf.set("google.cloud.auth.service.account.email", System.getenv("ACCOUNT_EMAIL"))
     spark2.conf.set("google.cloud.auth.service.account.keyfile", System.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
@@ -79,7 +79,7 @@ object s3Executor {
     s3DF.write.format("parquet")
       .partitionBy("order_id")
       .save(System.getenv("GCS_BUCKET"))
-
+    s3DF
     //    //to csv
     //    s3DF.coalesce(1).write.mode("overwrite").csv(System.getenv("GCS_BUCKET"))
   }
